@@ -13,10 +13,7 @@ import soot.SceneTransformer;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Local;
-import soot.ValueBox;
-import soot.Value;
 import soot.jimple.Stmt;
-import soot.jimple.DefinitionStmt;
 import soot.jimple.IdentityStmt;
 import soot.jimple.IntConstant;
 import soot.jimple.InvokeExpr;
@@ -47,8 +44,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		System.out.println("Anderson Analysis for class: " +
 							BashColor.ANSI_CYAN + classname + BashColor.ANSI_RESET +
 		                    ", classpath: " +
-							BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET +
-							null);
+							BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET);
 	}
 
 	void processIdentityStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
@@ -132,7 +128,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		while (qr.hasNext()) {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
-			// if (ssm.contains(classname)) { // debug
+			if (ssm.contains(classname)) { // debug
 				// System.out.println(sm); // debug
 				int allocId = 0;
 				// List<Value> inspect = new ArrayList<Value>(); // debug
@@ -220,11 +216,11 @@ public class WholeProgramTransformer extends SceneTransformer {
 						}
 					}
 				}
-			// } // debug
+			} // debug
 		}
 
 		anderson.run();
-		String answer = null;
+		String answer = "";
 		for (Entry<Integer, APointer> q : queries.entrySet()) {
 			TreeSet<Integer> result = anderson.getPointsToSet(q.getValue());
 			answer += q.getKey().toString() + ":";
