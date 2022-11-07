@@ -1,12 +1,9 @@
 package pta;
 
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import soot.Value;
@@ -34,13 +31,27 @@ import soot.jimple.ArrayRef;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Sources;
 import soot.jimple.toolkits.callgraph.Units;
-import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.InstanceInvokeExpr;
 import soot.util.queue.QueueReader;
 
 public class WholeProgramTransformer extends SceneTransformer {
 
-	static void processIdentityStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
+	String classpath;
+	String classname;
+
+	WholeProgramTransformer(String name) {
+		classpath = name;
+		String qualidIdent[] = classpath.split("\\.");
+		System.out.println(classpath);
+		classname = qualidIdent[qualidIdent.length - 1];
+		System.out.println("Anderson Analysis for class: " +
+							BashColor.ANSI_CYAN + classname + BashColor.ANSI_RESET +
+		                    ", classpath: " +
+							BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET +
+							"");
+	}
+
+	void processIdentityStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
 		Value l = ((IdentityStmt) u).getLeftOp();
 		String sl = l.toString();
 		int indexOfParameter = getIndexOfParameter(((IdentityStmt) u).getRightOp().toString());
@@ -63,7 +74,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 				String sr = r.toString();
 				anderson.addAssignConstraint(scallsm + "||" + sr, ssm + "||" + sl);
 				anderson.addAssignConstraint(ssm + "||" + sl, scallsm + "||" + sr);
-				if (sm.toString().contains("FieldSensitivity")) { // debug
+				if (sm.toString().contains(classname)) { // debug
 					System.out.println("Unit: " + u); // debug
 					System.out.println("Possible source: " + src);
 					System.out.println("InvokeExpr @this: " + sr); // debug
@@ -73,7 +84,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 				String sr = r.toString();
 				anderson.addAssignConstraint(scallsm + "||" + sr, ssm + "||" + sl);
 				anderson.addAssignConstraint(ssm + "||" + sl, scallsm + "||" + sr);
-				if (sm.toString().contains("FieldSensitivity")) { // debug
+				if (sm.toString().contains(classname)) { // debug
 					System.out.println("Unit: " + u); // debug
 					System.out.println("Possible source: " + src);
 					System.out.println("Parameter" + indexOfParameter + ": " + sr); // debug
@@ -83,7 +94,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		}
 	}
 
-	static void processReturnStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
+	void processReturnStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
 		Value op = ((ReturnStmt) u).getOp(); String sop = op.toString();
 		Iterator sources = new Units(cg.edgesInto(sm));
 		Iterator methods = new Sources(cg.edgesInto(sm));
@@ -120,14 +131,19 @@ public class WholeProgramTransformer extends SceneTransformer {
 		while (qr.hasNext()) {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
-			// if (sm.toString().contains("FieldSensitivity")) {
-				// System.out.println(sm);
+			// if (ssm.contains(classname)) { // debug
+				// System.out.println(sm); // debug
 				int allocId = 0;
 				// List<Value> inspect = new ArrayList<Value>(); // debug
 				if (sm.hasActiveBody()) {
+					if (ssm.contains(classname)) System.out.println(
+						"Method: " + BashColor.ANSI_PURPLE + ssm + BashColor.ANSI_RESET);
 					for (Unit u : sm.getActiveBody().getUnits()) {
-						// System.out.println("Statement: " + u);
-						// System.out.println(u.getClass());
+						if (ssm.contains(classname)) {
+						    System.out.println("Statement: " +
+							    BashColor.ANSI_YELLOW + u + BashColor.ANSI_RESET +
+								", " + u.getClass());
+						}
 						if (u instanceof InvokeStmt) {
 							InvokeExpr ie = ((InvokeStmt) u).getInvokeExpr();
 							if (ie.getMethod().toString().equals("<benchmark.internal.BenchmarkN: void alloc(int)>")) {
@@ -150,25 +166,23 @@ public class WholeProgramTransformer extends SceneTransformer {
 							String sl = l.toString();
 							Value r = du.getRightOp();
 							String sr = r.toString();
-							// if (sm.toString().contains("Hello")) { // debug
+							// if (sm.toString().contains(classname)) { // debug
 							// System.out.println("Unit: " + u + ", Type: " + u.getClass()); // debug
 							// System.out.println("LeftType: " + l.getClass() + // debug
-							// ", RightType: " + r.getClass()); // debug
+							//                    ", RightType: " + r.getClass()); // debug
 							// } // debug
 							if (r instanceof NewExpr) {
 								if (allocId != 0)
 									System.out.println("Alloc: " + allocId + ", Lhs: " + l);
 								anderson.addNewConstraint(allocId, ssm + "||" + sl);
-							} else if (l instanceof Local && r instanceof Local) {
-								anderson.addAssignConstraint(ssm + "||" + sr, ssm + "||" + sl);
-							} else if ((l instanceof Local && r instanceof InstanceFieldRef) ||
-									(r instanceof Local && l instanceof InstanceFieldRef)) {
+							} else if ((l instanceof Local || l instanceof InstanceFieldRef) &&
+									(r instanceof Local || r instanceof InstanceFieldRef)) {
 								anderson.addAssignConstraint(ssm + "||" + sr, ssm + "||" + sl);
 							} else if ((l instanceof Local && r instanceof StaticFieldRef) ||
 									(r instanceof Local && l instanceof StaticFieldRef)) {
 								anderson.addAssignConstraint(sr, sl);
 							} else if (l instanceof Local && r instanceof ArrayRef) {
-								// TODO: Global/Local
+								// TODO: Global/Local ArrayRef??
 								sr = ((ArrayRef) r).getBase().toString() + ".[]";
 								anderson.addAssignConstraint(ssm + "||" + sr, ssm + "||" + sl);
 							} else if (r instanceof Local && l instanceof ArrayRef) {
@@ -181,7 +195,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 						}
 					}
 				}
-			// }
+			// } // debug
 		}
 
 		anderson.run();

@@ -15,7 +15,9 @@ public class MyPointerAnalysis {
 				+ File.pathSeparator + args[0] + File.separator + "rt.jar"
 				+ File.pathSeparator + args[0] + File.separator + "jce.jar";
 		System.out.println(classpath);
-		PackManager.v().getPack("wjtp").add(new Transform("wjtp.mypta", new WholeProgramTransformer()));
+		PackManager.v().getPack("wjtp").add(
+			new Transform("wjtp.mypta", new WholeProgramTransformer(args[1]))
+		);
 		soot.Main.main(new String[] {
 			"-f", "J", // Indprinciple
 			"-w",
