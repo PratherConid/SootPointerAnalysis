@@ -26,7 +26,7 @@ class NewConstraint {
 public class Anderson {
 	private List<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
 	private List<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
-	Map<APointer, TreeSet<Integer>> pts = new HashMap<APointer, TreeSet<Integer>>();
+	static Map<APointer, TreeSet<Integer>> pts = new HashMap<APointer, TreeSet<Integer>>();
 	void addAssignConstraint(APointer from, APointer to) {
 		assignConstraintList.add(new AssignConstraint(from, to));
 	}
@@ -43,15 +43,7 @@ public class Anderson {
 		for (boolean flag = true; flag; ) {
 			flag = false;
 			for (AssignConstraint ac : assignConstraintList) {
-				if (!pts.containsKey(ac.from)) {
-					continue;
-				}	
-				if (!pts.containsKey(ac.to)) {
-					pts.put(ac.to, new TreeSet<Integer>());
-				}
-				if (pts.get(ac.to).addAll(pts.get(ac.from))) {
-					flag = true;
-				}
+				flag|=ac.to.updateAssign(ac.from);
 			}
 		}
 	}
