@@ -6,20 +6,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
-import soot.Value;
-
 class AssignConstraint {
-	Value from, to;
-	AssignConstraint(Value from, Value to) {
+	String from, to;
+	AssignConstraint(String from, String to) {
 		this.from = from;
 		this.to = to;
 	}
 }
 
 class NewConstraint {
-	Value to;
+	String to;
 	int allocId;
-	NewConstraint(int allocId, Value to) {
+	NewConstraint(int allocId, String to) {
 		this.allocId = allocId;
 		this.to = to;
 	}
@@ -28,11 +26,11 @@ class NewConstraint {
 public class Anderson {
 	private List<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
 	private List<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
-	Map<Value, TreeSet<Integer>> pts = new HashMap<Value, TreeSet<Integer>>();
-	void addAssignConstraint(Value from, Value to) {
+	Map<String, TreeSet<Integer>> pts = new HashMap<String, TreeSet<Integer>>();
+	void addAssignConstraint(String from, String to) {
 		assignConstraintList.add(new AssignConstraint(from, to));
 	}
-	void addNewConstraint(int alloc, Value to) {
+	void addNewConstraint(int alloc, String to) {
 		newConstraintList.add(new NewConstraint(alloc, to));		
 	}
 	void run() {
@@ -57,8 +55,8 @@ public class Anderson {
 			}
 		}
 	}
-	TreeSet<Integer> getPointsToSet(Value Value) {
-		return pts.get(Value);
+	TreeSet<Integer> getPointsToSet(String str) {
+		return pts.get(str);
 	}
 	
 }
