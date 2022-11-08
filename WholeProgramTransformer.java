@@ -109,7 +109,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 				continue;
 			}
 
-			System.out.println("Src: " + src + "\n" + "Class: " + src.getClass());
+			if (sm.toString().contains(classname))
+			    System.out.println("Src: " + src + "\n" + "Class: " + src.getClass());
 
 			if (src instanceof AssignStmt) {
 				Value l = ((AssignStmt) src).getLeftOp(); String sl = l.toString();
@@ -161,7 +162,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		while (qr.hasNext()) {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
-			if (ssm.contains(classname)) { // debug
+			// if (ssm.contains(classname)) { // debug
 				// System.out.println(sm); // debug
 				int allocId = 0;
 				// List<Value> inspect = new ArrayList<Value>(); // debug
@@ -188,7 +189,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 						}
 						// DefinitionStmt -> IdentityStmt, AssignStmt
 						if (u instanceof IdentityStmt) {
-							// processIdentityStmt(sm, ssm, u);
+							processIdentityStmt(sm, ssm, u);
 						}
 						if (u instanceof AssignStmt) {
 							AssignStmt du = (AssignStmt)u;
@@ -243,11 +244,11 @@ public class WholeProgramTransformer extends SceneTransformer {
 							}
 						}
 						if (u instanceof ReturnStmt) {
-							// processReturnStmt(sm, ssm, u);
+							processReturnStmt(sm, ssm, u);
 						}
 					}
 				}
-			} // debug
+			// } // debug
 		}
 
 		anderson.run();
@@ -257,7 +258,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 			answer += q.getKey().toString() + ":";
 			if (result != null) {
 				for (APointer i : result) {
-					answer += " " + i.id;
+					if (i.id != 0)
+						answer += " " + i.id;
 				}
 			}
 			answer += "\n";

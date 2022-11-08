@@ -39,11 +39,12 @@ public class Anderson {
 	}
 
 	public boolean updateAssign(APointer from, APointer to) {
-		System.out.println("from: " + from + ", to:" + to +
-		                   ", fromSetDe: " + pts.get(from.deField()) +
-						   ", toSetDe:" + pts.get(to.deField())); // debug
+		// System.out.println("from: " + from + ", to:" + to +
+		//                    ", fromSetDe: " + pts.get(from.deField()) +
+		// 				   ", toSetDe:" + pts.get(to.deField())); // debug
 		if (!inPts(from.deField())) {
-			return false; // under discussion
+			pts.put(from.deField(), new HashSet<APointer>());
+			return false;
 		}
 		if (!inPts(to.deField())) {
 			pts.put(to.deField(), new HashSet<APointer>());
@@ -54,7 +55,7 @@ public class Anderson {
 			boolean flag = false;
 			for (APointer l : pts.get(to.deField())) {
 				APointer p = new APointer(l.id, to.field, l.indexlv);
-				System.out.println("from: " + from + ", p:" + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
+				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
 				if (!inPts(p))
 					pts.put(p, new HashSet<APointer>());
 				flag |= mergePts(from, p);
@@ -64,13 +65,16 @@ public class Anderson {
 			boolean flag = false;
 			for (APointer r : pts.get(from.deField())) {
 				APointer q = new APointer((int) r.id, from.field, r.indexlv);
-				System.out.println("q: " + q + ", to:" + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
-				assert inPts(q) : "Anderson::updateAssign  This pointer " + q + " is not in \"pts\" of Anderson";
+				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
+				if (!inPts(q))
+					pts.put(q, new HashSet<APointer>());
 				flag |= mergePts(q, to);
 			}
 			return flag;
 		}
-		assert false : "Anderson::updateAssign  Invalid Constraint, From = " + from + ", To = " + to;
+		System.out.println(BashColor.ANSI_RED +
+		                   "Anderson::updateAssign  Invalid Constraint, From = " + from +
+						   ", To = " + to + BashColor.ANSI_RESET);
 		return false;
 	}
 
