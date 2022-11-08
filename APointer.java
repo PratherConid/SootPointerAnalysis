@@ -2,18 +2,38 @@ package pta;
 
 public class APointer {
 	String name, field;
-	int id;
+	// `indexlv` is used to distinguish generated allocId (for NewMultiArrayExpr)
+	// We can't use "field" to store this because during the execution of
+	// anderson, it is possible that there will be pointers with both nontrivial
+	// `indexlv` and `field`
+	int id, indexlv;
 
 	public APointer(String name_, String field_) {
 		name = name_;
 		field = field_;
 		id = 0;
+		indexlv = 0;
+	}
+
+	public APointer(String name_, String field_, int indexlv_) {
+		name = name_;
+		field = field_;
+		id = 0;
+		indexlv = indexlv_;
 	}
 
 	public APointer(int id_, String field_) {
 		name = null;
 		field = field_;
 		id = id_;
+		indexlv = 0;
+	}
+
+	public APointer(int id_, String field_, int indexlv_) {
+		name = null;
+		field = field_;
+		id = id_;
+		indexlv = indexlv_;
 	}
 
 	@Override
@@ -32,18 +52,25 @@ public class APointer {
 			ret &= field.equals(that.field);
 		else if (field == null ^ that.field == null)
 			return false;
-		return ret && id == that.id;
+		return ret && id == that.id && indexlv == that.indexlv;
+	}
+
+	public APointer deField() {
+		if (name == null) return new APointer(id, null, indexlv);
+		else return new APointer(name, null, indexlv);
 	}
 
 	@Override
 	public int hashCode() {
-		return (id + "||" + name + "." + field).hashCode();
+		return (id + "||" + name + "." + field + "[[" + indexlv + "]]").hashCode();
 	}
 
 	@Override
 	public String toString() {
-		if (name == null) return "Alloc_" + id;
-		else if (field == null) return name;
-		else return name + "." + field;
+		String indexlvexpr = "";
+		if (indexlv != 0) indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
+		if (name == null) return "Alloc_" + id + indexlvexpr;
+		else if (field == null) return name + indexlvexpr;
+		else return name + "." + field + indexlvexpr;
 	}
 }

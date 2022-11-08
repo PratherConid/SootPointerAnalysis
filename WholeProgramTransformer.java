@@ -3,7 +3,7 @@ package pta;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import soot.Value;
@@ -21,6 +21,8 @@ import soot.jimple.InvokeStmt;
 import soot.jimple.ReturnStmt;
 import soot.jimple.AssignStmt;
 import soot.jimple.NewExpr;
+import soot.jimple.NewArrayExpr;
+import soot.jimple.NewMultiArrayExpr;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 import soot.jimple.StaticFieldRef;
 import soot.jimple.InstanceFieldRef;
@@ -35,6 +37,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 
 	String classpath;
 	String classname;
+	Anderson anderson;
+	CallGraph cg;
 
 	WholeProgramTransformer(String name) {
 		classpath = name;
@@ -47,7 +51,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 							BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET);
 	}
 
-	void processIdentityStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
+	private void processIdentityStmt(SootMethod sm, String ssm, Unit u) {
 		Value l = ((IdentityStmt) u).getLeftOp();
 		String sl = l.toString();
 		int indexOfParameter = getIndexOfParameter(((IdentityStmt) u).getRightOp().toString());
@@ -90,7 +94,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		}
 	}
 
-	void processReturnStmt(Anderson anderson, SootMethod sm, String ssm, Unit u, CallGraph cg) {
+	private void processReturnStmt(SootMethod sm, String ssm, Unit u) {
 		Value op = ((ReturnStmt) u).getOp(); String sop = op.toString();
 		Iterator sources = new Units(cg.edgesInto(sm));
 		Iterator methods = new Sources(cg.edgesInto(sm));
@@ -115,13 +119,42 @@ public class WholeProgramTransformer extends SceneTransformer {
 		}
 	}
 
+	private void processNewStmt(int allocId, String ssm, String sl) {
+		if (allocId != 0)
+			System.out.println("Alloc: " + allocId + ", Lhs: " + sl);
+		anderson.addNewConstraint(
+			new APointer(allocId, null),
+			new APointer(ssm + "||" + sl, null));
+	}
+
+	private void processNewMultiStmt(int allocId, String ssm, String sl, Value r) {
+		if (allocId != 0)
+			System.out.println("Alloc: " + allocId + ", Lhs: " + sl);
+		anderson.addNewConstraint(
+				new APointer(allocId, null),
+				new APointer(ssm + "||" + sl, null));
+		NewMultiArrayExpr nmr = (NewMultiArrayExpr) r;
+		int dim = nmr.getSizeCount();
+		for (int i = 1; i < dim; ++i) {
+			// BenchmarkN.alloc(<allocId>[[i]]);
+			// <lhs>[[i]] = new ...;
+			anderson.addNewConstraint(
+				new APointer(allocId, null, i),
+				new APointer(ssm + "||" + sl, null, i));
+			// <lhs>[[i-1]][] = <lhs>[[i]];
+			anderson.addAssignConstraint(
+				new APointer(ssm + "||" + sl, null, i),
+				new APointer(ssm + "||" + sl, "[]", i - 1));
+		}
+	}
+
 	@Override
 	protected void internalTransform(String arg0, Map<String, String> arg1) {
 
-		CallGraph cg = Scene.v().getCallGraph();
+		cg = Scene.v().getCallGraph();
 
 		TreeMap<Integer, APointer> queries = new TreeMap<Integer, APointer>();
-		Anderson anderson = new Anderson();
+		anderson = new Anderson();
 
 		ReachableMethods reachableMethods = Scene.v().getReachableMethods();
 		QueueReader<MethodOrMethodContext> qr = reachableMethods.listener();
@@ -155,7 +188,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 						}
 						// DefinitionStmt -> IdentityStmt, AssignStmt
 						if (u instanceof IdentityStmt) {
-							// processIdentityStmt(anderson, sm, ssm, u, cg);
+							// processIdentityStmt(sm, ssm, u);
 						}
 						if (u instanceof AssignStmt) {
 							AssignStmt du = (AssignStmt)u;
@@ -168,12 +201,10 @@ public class WholeProgramTransformer extends SceneTransformer {
 							//      System.out.println("LeftType: " + l.getClass() + // debug
 							//                         ", RightType: " + r.getClass()); // debug
 							//  } // debug
-							if (r instanceof NewExpr) {
-								if (allocId != 0)
-									System.out.println("Alloc: " + allocId + ", Lhs: " + l);
-								anderson.addNewConstraint(
-									new APointer(allocId, null),
-								    new APointer(ssm + "||" + sl, null));
+							if (r instanceof NewExpr || r instanceof NewArrayExpr) {
+								processNewStmt(allocId, ssm, sl);
+							} else if (r instanceof NewMultiArrayExpr) {
+								processNewMultiStmt(allocId, ssm, sl, r);
 							} else if (l instanceof Local && r instanceof Local) {
 								anderson.addAssignConstraint(
 									new APointer(ssm + "||" + sr, null),
@@ -212,7 +243,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 							}
 						}
 						if (u instanceof ReturnStmt) {
-							// processReturnStmt(anderson, sm, ssm, u, cg);
+							// processReturnStmt(sm, ssm, u);
 						}
 					}
 				}
@@ -222,11 +253,11 @@ public class WholeProgramTransformer extends SceneTransformer {
 		anderson.run();
 		String answer = "";
 		for (Entry<Integer, APointer> q : queries.entrySet()) {
-			TreeSet<Integer> result = anderson.getPointsToSet(q.getValue());
+			HashSet<APointer> result = anderson.getPointsToSet(q.getValue());
 			answer += q.getKey().toString() + ":";
 			if (result != null) {
-				for (Integer i : result) {
-					answer += " " + i;
+				for (APointer i : result) {
+					answer += " " + i.id;
 				}
 			}
 			answer += "\n";

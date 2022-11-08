@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
-import java.util.Set;
+import java.util.HashSet;
 
 class AssignConstraint {
 	APointer from, to;
@@ -29,41 +28,43 @@ class NewConstraint {
 public class Anderson {
 	private List<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
 	private List<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
-	Map<APointer, TreeSet<Integer>> pts = new HashMap<APointer, TreeSet<Integer>>();
+	Map<APointer, HashSet<APointer>> pts = new HashMap<APointer, HashSet<APointer>>();
 
 	public boolean inPts(APointer thi) {
 		return pts.containsKey(thi);
 	}
 
 	public boolean mergePts(APointer from, APointer to) {
-		Set<Integer> pfrom = pts.get(from);
-		Set<Integer> pto = pts.get(to);
-		return pto.addAll(pfrom);
+		return pts.get(to).addAll(pts.get(from));
 	}
 
 	public boolean updateAssign(APointer from, APointer to) {
-		// System.out.println("from: " + from + ", to:" + to + ", fromSet: " + pts.get(from) + ", toSet:" + pts.get(to)); // debug
-		if (!inPts(from)) {
-			return true;
+		System.out.println("from: " + from + ", to:" + to +
+		                   ", fromSetDe: " + pts.get(from.deField()) +
+						   ", toSetDe:" + pts.get(to.deField())); // debug
+		if (!inPts(from.deField())) {
+			return false; // under discussion
 		}
-		if (!inPts(to)) {
-			pts.put(to, new TreeSet<>());
+		if (!inPts(to.deField())) {
+			pts.put(to.deField(), new HashSet<APointer>());
 		}
 		if (to.field == null && from.field == null) {
-			return mergePts(to, from);
+			return mergePts(from, to);
 		} else if (to.field != null) {
 			boolean flag = false;
-			for (Integer l : pts.get(to)) {
-				APointer p = new APointer((int) l, to.field);
+			for (APointer l : pts.get(to.deField())) {
+				APointer p = new APointer(l.id, to.field, l.indexlv);
+				System.out.println("from: " + from + ", p:" + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
 				if (!inPts(p))
-					pts.put(p, new TreeSet<>());
+					pts.put(p, new HashSet<APointer>());
 				flag |= mergePts(from, p);
 			}
 			return flag;
 		} else if (from.field != null) {
 			boolean flag = false;
-			for (Integer r : pts.get(from)) {
-				APointer q = new APointer((int) r, from.field);
+			for (APointer r : pts.get(from.deField())) {
+				APointer q = new APointer((int) r.id, from.field, r.indexlv);
+				System.out.println("q: " + q + ", to:" + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
 				assert inPts(q) : "Anderson::updateAssign  This pointer " + q + " is not in \"pts\" of Anderson";
 				flag |= mergePts(q, to);
 			}
@@ -84,10 +85,9 @@ public class Anderson {
 	void run() {
 		for (NewConstraint nc : newConstraintList) {
 			if (!pts.containsKey(nc.to)) {
-				pts.put(nc.to, new TreeSet<Integer>());
+				pts.put(nc.to, new HashSet<APointer>());
 			}
-			pts.get(nc.to).add(nc.allocId.id);
-			// System.out.println(pts); // debug
+			pts.get(nc.to).add(nc.allocId);
 		}
 		for (boolean flag = true; flag;) {
 			flag = false;
@@ -97,7 +97,7 @@ public class Anderson {
 		}
 	}
 
-	TreeSet<Integer> getPointsToSet(APointer str) {
+	HashSet<APointer> getPointsToSet(APointer str) {
 		return pts.get(str);
 	}
 
