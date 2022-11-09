@@ -7,33 +7,38 @@ public class APointer {
 	// anderson, it is possible that there will be pointers with both nontrivial
 	// `indexlv` and `field`
 	int id, indexlv;
+	String context;
 
-	public APointer(String name_, String field_) {
+	public APointer(String name_, String field_,String context_) {
 		name = name_;
 		field = field_;
 		id = 0;
 		indexlv = 0;
+		context=context_;
 	}
 
-	public APointer(String name_, String field_, int indexlv_) {
+	public APointer(String name_, String field_, int indexlv_,String context_) {
 		name = name_;
 		field = field_;
 		id = 0;
 		indexlv = indexlv_;
+		context=context_;
 	}
 
-	public APointer(int id_, String field_) {
+	public APointer(int id_, String field_,String context_) {
 		name = null;
 		field = field_;
 		id = id_;
 		indexlv = 0;
+		context=context_;
 	}
 
-	public APointer(int id_, String field_, int indexlv_) {
+	public APointer(int id_, String field_, int indexlv_,String context_) {
 		name = null;
 		field = field_;
 		id = id_;
 		indexlv = indexlv_;
+		context=context_;
 	}
 
 	@Override
@@ -52,25 +57,25 @@ public class APointer {
 			ret &= field.equals(that.field);
 		else if (field == null ^ that.field == null)
 			return false;
-		return ret && id == that.id && indexlv == that.indexlv;
+		return ret && id == that.id && indexlv == that.indexlv&&context.equals(that.context);
 	}
 
 	public APointer deField() {
-		if (name == null) return new APointer(id, null, indexlv);
-		else return new APointer(name, null, indexlv);
+		if (name == null) return new APointer(id, null, indexlv,context);
+		else return new APointer(name, null, indexlv,context);
 	}
 
 	@Override
 	public int hashCode() {
-		return (id + "||" + name + "." + field + "[[" + indexlv + "]]").hashCode();
+		return (id + "||" + name + "." + field + "[[" + indexlv + "]]"+"&"+context+"&").hashCode();
 	}
 
 	@Override
 	public String toString() {
 		String indexlvexpr = "";
 		if (indexlv != 0) indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
-		if (name == null) return "Alloc_" + id + indexlvexpr;
-		else if (field == null) return name + indexlvexpr;
-		else return name + "." + field + indexlvexpr;
+		if (name == null) return context+": "+"Alloc_" + id + indexlvexpr;
+		else if (field == null) return context+": "+name + indexlvexpr;
+		else return context+": "+name + "." + field + indexlvexpr;
 	}
 }

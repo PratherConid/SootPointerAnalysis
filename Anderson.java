@@ -29,6 +29,7 @@ public class Anderson {
 	private List<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
 	private List<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
 	Map<APointer, HashSet<APointer>> pts = new HashMap<APointer, HashSet<APointer>>();
+	Map<String,HashSet<String>> cons=new HashMap<String,HashSet<String>>();
 
 	public boolean inPts(APointer thi) {
 		return pts.containsKey(thi);
@@ -54,7 +55,7 @@ public class Anderson {
 		} else if (to.field != null) {
 			boolean flag = false;
 			for (APointer l : pts.get(to.deField())) {
-				APointer p = new APointer(l.id, to.field, l.indexlv);
+				APointer p = new APointer(l.id, to.field, l.indexlv,"qwq");
 				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
 				if (!inPts(p))
 					pts.put(p, new HashSet<APointer>());
@@ -64,7 +65,7 @@ public class Anderson {
 		} else if (from.field != null) {
 			boolean flag = false;
 			for (APointer r : pts.get(from.deField())) {
-				APointer q = new APointer((int) r.id, from.field, r.indexlv);
+				APointer q = new APointer((int) r.id, from.field, r.indexlv,"qwq");
 				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
 				if (!inPts(q))
 					pts.put(q, new HashSet<APointer>());
@@ -79,6 +80,20 @@ public class Anderson {
 	}
 
 	void addAssignConstraint(APointer from, APointer to) {
+		// if(from.name.contains("test.FieldSensitivity")||from.name.contains("benchmark.objects.A")
+		// 	||from.name.contains("benchmark.objects.B")) {
+		// 	System.out.println(BashColor.ANSI_RED+
+		// 		"Fvar: "+from.name +BashColor.ANSI_RESET);
+		// 	System.out.println(BashColor.ANSI_GREEN+
+		// 		"Fcontext: "+from.context+BashColor.ANSI_RESET);
+		// }
+		// if(to.name.contains("test.FieldSensitivity")||to.name.contains("benchmark.objects.A")
+		// 	||to.name.contains("benchmark.objects.B")) {
+		// 	System.out.println(BashColor.ANSI_RED+
+		// 		"Tvar: "+to.name +BashColor.ANSI_RESET);
+		// 	System.out.println(BashColor.ANSI_GREEN+
+		// 		"Tcontext: "+to.context+BashColor.ANSI_RESET);
+		// }
 		assignConstraintList.add(new AssignConstraint(from, to));
 	}
 
@@ -87,6 +102,14 @@ public class Anderson {
 	}
 
 	void run() {
+		System.out.println(BashColor.ANSI_YELLOW+
+			"Number of new constraints: "+newConstraintList.size()+
+			BashColor.ANSI_RESET);
+
+		System.out.println(BashColor.ANSI_YELLOW+
+			"Number of assign constraints: "+assignConstraintList.size()+
+			BashColor.ANSI_RESET);
+
 		for (NewConstraint nc : newConstraintList) {
 			if (!pts.containsKey(nc.to)) {
 				pts.put(nc.to, new HashSet<APointer>());
@@ -100,9 +123,12 @@ public class Anderson {
 			}
 		}
 	}
-
 	HashSet<APointer> getPointsToSet(APointer str) {
 		return pts.get(str);
+	}
+
+	HashSet<String> getCons(String s) {
+		return cons.get(s);
 	}
 
 }
