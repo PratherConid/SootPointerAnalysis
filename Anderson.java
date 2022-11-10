@@ -17,7 +17,7 @@ class AssignConstraint {
 
 	@Override
 	public int hashCode() {
-		return (from.hashString()+"?"+to.hashString()).hashCode();
+		return (from.hashString() + "?" + to.hashString()).hashCode();
 	}
 
 	@Override
@@ -27,7 +27,7 @@ class AssignConstraint {
 		if (o == null || getClass() != o.getClass())
 			return false;
 		AssignConstraint that = (AssignConstraint) o;
-		return from.equals(that.from)&&to.equals(that.to);
+		return from.equals(that.from) && to.equals(that.to);
 	}
 }
 
@@ -42,7 +42,7 @@ class NewConstraint {
 
 	@Override
 	public int hashCode() {
-		return (allocId.hashString()+"?"+to.hashString()).hashCode();
+		return (allocId.hashString() + "?" + to.hashString()).hashCode();
 	}
 
 	@Override
@@ -52,15 +52,15 @@ class NewConstraint {
 		if (o == null || getClass() != o.getClass())
 			return false;
 		NewConstraint that = (NewConstraint) o;
-		return allocId.equals(that.allocId)&&to.equals(that.to);
+		return allocId.equals(that.allocId) && to.equals(that.to);
 	}
 }
 
 public class Anderson {
-	private Set<AssignConstraint> assignConstraintList = new HashSet<AssignConstraint>();
-	private Set<NewConstraint> newConstraintList = new HashSet<NewConstraint>();
+	private ArrayList<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
+	private ArrayList<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
 	Map<APointer, HashSet<APointer>> pts = new HashMap<APointer, HashSet<APointer>>();
-	Map<String,HashSet<String>> cons=new HashMap<String,HashSet<String>>();
+	Map<String, HashSet<String>> cons = new HashMap<String, HashSet<String>>();
 
 	public boolean inPts(APointer thi) {
 		return pts.containsKey(thi);
@@ -72,8 +72,8 @@ public class Anderson {
 
 	public boolean updateAssign(APointer from, APointer to) {
 		// System.out.println("from: " + from + ", to:" + to +
-		//                    ", fromSetDe: " + pts.get(from.deField()) +
-		// 				   ", toSetDe:" + pts.get(to.deField())); // debug
+		// ", fromSetDe: " + pts.get(from.deField()) +
+		// ", toSetDe:" + pts.get(to.deField())); // debug
 		if (!inPts(from.deField())) {
 			pts.put(from.deField(), new HashSet<APointer>());
 			return false;
@@ -86,8 +86,9 @@ public class Anderson {
 		} else if (to.field != null) {
 			boolean flag = false;
 			for (APointer l : pts.get(to.deField())) {
-				APointer p = new APointer(l.id, to.field, l.indexlv,"qwq");
-				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
+				APointer p = new APointer(l.id, to.field, l.indexlv, "heap");
+				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " +
+				// pts.get(from) + ", pSet:" + pts.get(p)); // debug
 				if (!inPts(p))
 					pts.put(p, new HashSet<APointer>());
 				flag |= mergePts(from, p);
@@ -96,8 +97,9 @@ public class Anderson {
 		} else if (from.field != null) {
 			boolean flag = false;
 			for (APointer r : pts.get(from.deField())) {
-				APointer q = new APointer((int) r.id, from.field, r.indexlv,"qwq");
-				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
+				APointer q = new APointer((int) r.id, from.field, r.indexlv, "heap");
+				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ",
+				// toSet:" + pts.get(to)); // debug
 				if (!inPts(q))
 					pts.put(q, new HashSet<APointer>());
 				flag |= mergePts(q, to);
@@ -105,25 +107,25 @@ public class Anderson {
 			return flag;
 		}
 		System.out.println(BashColor.ANSI_RED +
-		                   "Anderson::updateAssign  Invalid Constraint, From = " + from +
-						   ", To = " + to + BashColor.ANSI_RESET);
+				"Anderson::updateAssign  Invalid Constraint, From = " + from +
+				", To = " + to + BashColor.ANSI_RESET);
 		return false;
 	}
 
 	void addAssignConstraint(APointer from, APointer to) {
 		// if(from.name.contains("test.FieldSensitivity")||from.name.contains("benchmark.objects.A")
-		// 	||from.name.contains("benchmark.objects.B")) {
-		// 	System.out.println(BashColor.ANSI_RED+
-		// 		"Fvar: "+from.name +BashColor.ANSI_RESET);
-		// 	System.out.println(BashColor.ANSI_GREEN+
-		// 		"Fcontext: "+from.context+BashColor.ANSI_RESET);
+		// ||from.name.contains("benchmark.objects.B")) {
+		// System.out.println(BashColor.ANSI_RED+
+		// "Fvar: "+from.name +BashColor.ANSI_RESET);
+		// System.out.println(BashColor.ANSI_GREEN+
+		// "Fcontext: "+from.context+BashColor.ANSI_RESET);
 		// }
 		// if(to.name.contains("test.FieldSensitivity")||to.name.contains("benchmark.objects.A")
-		// 	||to.name.contains("benchmark.objects.B")) {
-		// 	System.out.println(BashColor.ANSI_RED+
-		// 		"Tvar: "+to.name +BashColor.ANSI_RESET);
-		// 	System.out.println(BashColor.ANSI_GREEN+
-		// 		"Tcontext: "+to.context+BashColor.ANSI_RESET);
+		// ||to.name.contains("benchmark.objects.B")) {
+		// System.out.println(BashColor.ANSI_RED+
+		// "Tvar: "+to.name +BashColor.ANSI_RESET);
+		// System.out.println(BashColor.ANSI_GREEN+
+		// "Tcontext: "+to.context+BashColor.ANSI_RESET);
 		// }
 		assignConstraintList.add(new AssignConstraint(from, to));
 	}
@@ -133,14 +135,13 @@ public class Anderson {
 	}
 
 	void run() {
-		List<AssignConstraint> arr=new ArrayList<AssignConstraint>(assignConstraintList);
-		System.out.println(BashColor.ANSI_YELLOW+
-			"Number of new constraints: "+newConstraintList.size()+
-			BashColor.ANSI_RESET);
+		System.out.println(BashColor.ANSI_YELLOW +
+				"Number of new constraints: " + newConstraintList.size() +
+				BashColor.ANSI_RESET);
 
-		System.out.println(BashColor.ANSI_YELLOW+
-			"Number of assign constraints: "+assignConstraintList.size()+
-			BashColor.ANSI_RESET);
+		System.out.println(BashColor.ANSI_YELLOW +
+				"Number of assign constraints: " + assignConstraintList.size() +
+				BashColor.ANSI_RESET);
 
 		for (NewConstraint nc : newConstraintList) {
 			if (!pts.containsKey(nc.to)) {
@@ -150,11 +151,12 @@ public class Anderson {
 		}
 		for (boolean flag = true; flag;) {
 			flag = false;
-			for (AssignConstraint ac : arr) {
+			for (AssignConstraint ac : assignConstraintList) {
 				flag |= updateAssign(ac.from, ac.to);
 			}
 		}
 	}
+
 	HashSet<APointer> getPointsToSet(APointer str) {
 		return pts.get(str);
 	}

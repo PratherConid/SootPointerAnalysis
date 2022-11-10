@@ -9,36 +9,36 @@ public class APointer {
 	int id, indexlv;
 	String context;
 
-	public APointer(String name_, String field_,String context_) {
+	public APointer(String name_, String field_, String context_) {
 		name = name_;
 		field = field_;
 		id = 0;
 		indexlv = 0;
-		context=context_;
+		context = context_;
 	}
 
-	public APointer(String name_, String field_, int indexlv_,String context_) {
+	public APointer(String name_, String field_, int indexlv_, String context_) {
 		name = name_;
 		field = field_;
 		id = 0;
 		indexlv = indexlv_;
-		context=context_;
+		context = context_;
 	}
 
-	public APointer(int id_, String field_,String context_) {
+	public APointer(int id_, String field_, String context_) {
 		name = null;
 		field = field_;
 		id = id_;
 		indexlv = 0;
-		context=context_;
+		context = context_;
 	}
 
-	public APointer(int id_, String field_, int indexlv_,String context_) {
+	public APointer(int id_, String field_, int indexlv_, String context_) {
 		name = null;
 		field = field_;
 		id = id_;
 		indexlv = indexlv_;
-		context=context_;
+		context = context_;
 	}
 
 	@Override
@@ -57,16 +57,18 @@ public class APointer {
 			ret &= field.equals(that.field);
 		else if (field == null ^ that.field == null)
 			return false;
-		return ret && id == that.id && indexlv == that.indexlv&&context.equals(that.context);
+		return ret && id == that.id && indexlv == that.indexlv && context.equals(that.context);
 	}
 
 	public APointer deField() {
-		if (name == null) return new APointer(id, null, indexlv,context);
-		else return new APointer(name, null, indexlv,context);
+		if (name == null)
+			return new APointer(id, null, indexlv, context);
+		else
+			return new APointer(name, null, indexlv, context);
 	}
 
 	public String hashString() {
-		return id + "||" + name + "." + field + "[[" + indexlv + "]]"+"&"+context+"&";
+		return id + "||" + name + "." + field + "[[" + indexlv + "]]" + "&" + context + "&";
 	}
 
 	@Override
@@ -77,9 +79,13 @@ public class APointer {
 	@Override
 	public String toString() {
 		String indexlvexpr = "";
-		if (indexlv != 0) indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
-		if (name == null) return context+": "+"Alloc_" + id + indexlvexpr;
-		else if (field == null) return context+": "+name + indexlvexpr;
-		else return context+": "+name + "." + field + indexlvexpr;
+		if (indexlv != 0)
+			indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
+		if (name == null)
+			return context + ": " + "Alloc_" + id + indexlvexpr;
+		else if (field == null)
+			return context + ": " + name + indexlvexpr;
+		else
+			return context + ": " + name + "." + field + indexlvexpr;
 	}
 }
