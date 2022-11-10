@@ -223,13 +223,17 @@ public class WholeProgramTransformer extends SceneTransformer {
 							} else if (l instanceof Local && r instanceof StaticFieldRef) {
 								StaticFieldRef ir = (StaticFieldRef)r;
 								anderson.addAssignConstraint(
-									new APointer(ir.getClass().toString(), ir.getField().toString()),
+									new APointer(ir.getClass().toString()+"||"+ir.getField().toString(),null),
 									new APointer(ssm + "||" + sl, null));
 							} else if (r instanceof Local && l instanceof StaticFieldRef) {
 								StaticFieldRef il = (StaticFieldRef)l;
+								if(ssm.contains(classname)) 
+									System.out.println(BashColor.ANSI_WHITE+
+										il.getClass().toString()+"\n"+il.getField().toString()
+										+BashColor.ANSI_RESET);
 								anderson.addAssignConstraint(
 									new APointer(ssm + "||" + sr, null),
-									new APointer(il.getClass().toString(), il.getField().toString()));
+									new APointer(il.getClass().toString()+"||"+il.getField().toString(),null));
 							} else if (l instanceof Local && r instanceof ArrayRef) {
 								// TODO: Global/Local ArrayRef??
 								sr = ((ArrayRef)r).getBase().toString();
