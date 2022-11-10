@@ -65,9 +65,13 @@ public class APointer {
 		else return new APointer(name, null, indexlv,context);
 	}
 
+	public String hashString() {
+		return id + "||" + name + "." + field + "[[" + indexlv + "]]"+"&"+context+"&";
+	}
+
 	@Override
 	public int hashCode() {
-		return (id + "||" + name + "." + field + "[[" + indexlv + "]]"+"&"+context+"&").hashCode();
+		return hashString().hashCode();
 	}
 
 	@Override

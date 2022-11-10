@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.HashSet;
 
 class AssignConstraint {
@@ -12,6 +13,21 @@ class AssignConstraint {
 	AssignConstraint(APointer from, APointer to) {
 		this.from = from;
 		this.to = to;
+	}
+
+	@Override
+	public int hashCode() {
+		return (from.hashString()+"?"+to.hashString()).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		AssignConstraint that = (AssignConstraint) o;
+		return from.equals(that.from)&&to.equals(that.to);
 	}
 }
 
@@ -23,11 +39,26 @@ class NewConstraint {
 		this.allocId = allocId;
 		this.to = to;
 	}
+
+	@Override
+	public int hashCode() {
+		return (allocId.hashString()+"?"+to.hashString()).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		NewConstraint that = (NewConstraint) o;
+		return allocId.equals(that.allocId)&&to.equals(that.to);
+	}
 }
 
 public class Anderson {
-	private List<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
-	private List<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
+	private Set<AssignConstraint> assignConstraintList = new HashSet<AssignConstraint>();
+	private Set<NewConstraint> newConstraintList = new HashSet<NewConstraint>();
 	Map<APointer, HashSet<APointer>> pts = new HashMap<APointer, HashSet<APointer>>();
 	Map<String,HashSet<String>> cons=new HashMap<String,HashSet<String>>();
 
@@ -102,6 +133,7 @@ public class Anderson {
 	}
 
 	void run() {
+		List<AssignConstraint> arr=new ArrayList<AssignConstraint>(assignConstraintList);
 		System.out.println(BashColor.ANSI_YELLOW+
 			"Number of new constraints: "+newConstraintList.size()+
 			BashColor.ANSI_RESET);
@@ -118,7 +150,7 @@ public class Anderson {
 		}
 		for (boolean flag = true; flag;) {
 			flag = false;
-			for (AssignConstraint ac : assignConstraintList) {
+			for (AssignConstraint ac : arr) {
 				flag |= updateAssign(ac.from, ac.to);
 			}
 		}

@@ -175,7 +175,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 			// BenchmarkN.alloc(<allocId>[[i]]);
 			// <lhs>[[i]] = new ...;
 			anderson.addNewConstraint(
-				new APointer(allocId, null, i,context),
+				new APointer(allocId, null, i,"qwq"),
 				new APointer(ssm + "||" + sl, null, i,context));
 			// <lhs>[[i-1]][] = <lhs>[[i]];
 			anderson.addAssignConstraint(
@@ -212,6 +212,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 						continue;
 					hs.add(callsm.toString()+"||"+src.toString());
 				}
+				// hs.add("qwq");
 				if(hs.isEmpty())
 					hs.add("root");
 				if(ssm.contains(classname)||ssm.contains("benchmark.objects.A")||ssm.contains("benchmark.objects.A")) {
@@ -298,13 +299,13 @@ public class WholeProgramTransformer extends SceneTransformer {
 								} else if (l instanceof Local && r instanceof StaticFieldRef) {
 									StaticFieldRef ir = (StaticFieldRef)r;
 									anderson.addAssignConstraint(
-										new APointer(ir.getClass().toString(), ir.getField().toString(),con),
+										new APointer(ir.getClass().toString()+"||"+ir.getField().toString(),null,"static"),
 										new APointer(ssm + "||" + sl, null,con));
 								} else if (r instanceof Local && l instanceof StaticFieldRef) {
 									StaticFieldRef il = (StaticFieldRef)l;
 									anderson.addAssignConstraint(
 										new APointer(ssm + "||" + sr, null,con),
-										new APointer(il.getClass().toString(), il.getField().toString(),con));
+										new APointer(il.getClass().toString()+"||"+il.getField().toString(),null,"static"));
 								} else if (l instanceof Local && r instanceof ArrayRef) {
 									// TODO: Global/Local ArrayRef??
 									sr = ((ArrayRef)r).getBase().toString();
