@@ -21,7 +21,6 @@ public class MyPointerAnalysis {
 		soot.Main.main(new String[] {
 			"-f", "J", // Indprinciple
 			"-w",
-			"-p", "cg.spark", "enabled:true",
 			"-p", "wjtp.mypta", "enabled:true",
 			"-soot-class-path", classpath,
 			args[1]
