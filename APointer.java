@@ -56,8 +56,10 @@ public class APointer {
 	}
 
 	public APointer deField() {
-		if (name == null) return new APointer(id, null, indexlv);
-		else return new APointer(name, null, indexlv);
+		if (name == null)
+			return new APointer(id, null, indexlv);
+		else
+			return new APointer(name, null, indexlv);
 	}
 
 	@Override
@@ -68,9 +70,13 @@ public class APointer {
 	@Override
 	public String toString() {
 		String indexlvexpr = "";
-		if (indexlv != 0) indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
-		if (name == null) return "Alloc_" + id + indexlvexpr;
-		else if (field == null) return name + indexlvexpr;
-		else return name + "." + field + indexlvexpr;
+		if (indexlv != 0)
+			indexlvexpr = "[[" + Integer.toString(indexlv) + "]]";
+		if (name == null)
+			return "Alloc_" + id + indexlvexpr;
+		else if (field == null)
+			return name + indexlvexpr;
+		else
+			return name + "." + field + indexlvexpr;
 	}
 }

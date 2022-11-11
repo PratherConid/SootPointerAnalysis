@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import soot.Value;
 import soot.MethodOrMethodContext;
@@ -39,6 +40,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 	String classname;
 	Anderson anderson;
 	CallGraph cg;
+	ArrayList<Integer> allId = new ArrayList<Integer>();
 
 	WholeProgramTransformer(String name) {
 		classpath = name;
@@ -46,9 +48,9 @@ public class WholeProgramTransformer extends SceneTransformer {
 		System.out.println(classpath);
 		classname = qualidIdent[qualidIdent.length - 1];
 		System.out.println("Anderson Analysis for class: " +
-							BashColor.ANSI_CYAN + classname + BashColor.ANSI_RESET +
-		                    ", classpath: " +
-							BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET);
+				BashColor.ANSI_CYAN + classname + BashColor.ANSI_RESET +
+				", classpath: " +
+				BashColor.ANSI_CYAN + classpath + BashColor.ANSI_RESET);
 	}
 
 	private void processIdentityStmt(SootMethod sm, String ssm, Unit u) {
@@ -56,7 +58,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 		String sl = l.toString();
 		int indexOfParameter = getIndexOfParameter(((IdentityStmt) u).getRightOp().toString());
 
-		if (indexOfParameter <= -2) return;
+		if (indexOfParameter <= -2)
+			return;
 
 		Iterator sources = new Units(cg.edgesInto(sm));
 		Iterator methods = new Sources(cg.edgesInto(sm));
@@ -73,7 +76,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 				Value r = ((InstanceInvokeExpr) (src.getInvokeExpr())).getBase();
 				String sr = r.toString();
 				anderson.addAssignConstraint(new APointer(scallsm + "||" + sr, null),
-				                             new APointer(ssm + "||" + sl, null));
+						new APointer(ssm + "||" + sl, null));
 				if (sm.toString().contains(classname)) { // debug
 					System.out.println("Unit: " + u); // debug
 					System.out.println("Possible source: " + src); // debug
@@ -83,7 +86,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 				Value r = src.getInvokeExpr().getArg(indexOfParameter);
 				String sr = r.toString();
 				anderson.addAssignConstraint(new APointer(scallsm + "||" + sr, null),
-				                             new APointer(ssm + "||" + sl, null));
+						new APointer(ssm + "||" + sl, null));
 				if (sm.toString().contains(classname)) { // debug
 					System.out.println("Unit: " + u); // debug
 					System.out.println("Possible source: " + src);
@@ -95,12 +98,13 @@ public class WholeProgramTransformer extends SceneTransformer {
 	}
 
 	private void processReturnStmt(SootMethod sm, String ssm, Unit u) {
-		Value op = ((ReturnStmt) u).getOp(); String sop = op.toString();
+		Value op = ((ReturnStmt) u).getOp();
+		String sop = op.toString();
 		Iterator sources = new Units(cg.edgesInto(sm));
 		Iterator methods = new Sources(cg.edgesInto(sm));
 		while (sources.hasNext()) {
-			Stmt src = (Stmt)sources.next();
-			SootMethod callsm = (SootMethod)methods.next();
+			Stmt src = (Stmt) sources.next();
+			SootMethod callsm = (SootMethod) methods.next();
 			String scallsm = callsm.toString();
 			if (src == null) {
 				continue;
@@ -110,12 +114,13 @@ public class WholeProgramTransformer extends SceneTransformer {
 			}
 
 			if (sm.toString().contains(classname))
-			    System.out.println("Src: " + src + "\n" + "Class: " + src.getClass());
+				System.out.println("Src: " + src + "\n" + "Class: " + src.getClass());
 
 			if (src instanceof AssignStmt) {
-				Value l = ((AssignStmt) src).getLeftOp(); String sl = l.toString();
+				Value l = ((AssignStmt) src).getLeftOp();
+				String sl = l.toString();
 				anderson.addAssignConstraint(new APointer(ssm + "||" + sop, null),
-				                             new APointer(scallsm + "||" + sl, null));
+						new APointer(scallsm + "||" + sl, null));
 			}
 		}
 	}
@@ -124,8 +129,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 		if (allocId != 0)
 			System.out.println("Alloc: " + allocId + ", Lhs: " + sl);
 		anderson.addNewConstraint(
-			new APointer(allocId, null),
-			new APointer(ssm + "||" + sl, null));
+				new APointer(allocId, null),
+				new APointer(ssm + "||" + sl, null));
 	}
 
 	private void processNewMultiStmt(int allocId, String ssm, String sl, Value r) {
@@ -140,12 +145,12 @@ public class WholeProgramTransformer extends SceneTransformer {
 			// BenchmarkN.alloc(<allocId>[[i]]);
 			// <lhs>[[i]] = new ...;
 			anderson.addNewConstraint(
-				new APointer(allocId, null, i),
-				new APointer(ssm + "||" + sl, null, i));
+					new APointer(allocId, null, i),
+					new APointer(ssm + "||" + sl, null, i));
 			// <lhs>[[i-1]][] = <lhs>[[i]];
 			anderson.addAssignConstraint(
-				new APointer(ssm + "||" + sl, null, i),
-				new APointer(ssm + "||" + sl, "[]", i - 1));
+					new APointer(ssm + "||" + sl, null, i),
+					new APointer(ssm + "||" + sl, "[]", i - 1));
 		}
 	}
 
@@ -163,95 +168,97 @@ public class WholeProgramTransformer extends SceneTransformer {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
 			// if (ssm.contains(classname)) { // debug
-				// System.out.println(sm); // debug
-				int allocId = 0;
-				// List<Value> inspect = new ArrayList<Value>(); // debug
-				if (sm.hasActiveBody()) {
-					if (ssm.contains(classname)) System.out.println(
-						"Method: " + BashColor.ANSI_PURPLE + ssm + BashColor.ANSI_RESET);
-					for (Unit u : sm.getActiveBody().getUnits()) {
-						if (ssm.contains(classname)) {
-						    System.out.println("Statement: " +
-							    BashColor.ANSI_YELLOW + u + BashColor.ANSI_RESET +
+			// System.out.println(sm); // debug
+			int allocId = 0;
+			// List<Value> inspect = new ArrayList<Value>(); // debug
+			if (sm.hasActiveBody()) {
+				if (ssm.contains(classname))
+					System.out.println(
+							"Method: " + BashColor.ANSI_PURPLE + ssm + BashColor.ANSI_RESET);
+				for (Unit u : sm.getActiveBody().getUnits()) {
+					if (ssm.contains(classname)) {
+						System.out.println("Statement: " +
+								BashColor.ANSI_YELLOW + u + BashColor.ANSI_RESET +
 								", " + u.getClass());
+					}
+					if (u instanceof InvokeStmt) {
+						InvokeExpr ie = ((InvokeStmt) u).getInvokeExpr();
+						if (ie.getMethod().toString().equals("<benchmark.internal.BenchmarkN: void alloc(int)>")) {
+							allocId = ((IntConstant) ie.getArgs().get(0)).value;
+							allId.add(allocId);
 						}
-						if (u instanceof InvokeStmt) {
-							InvokeExpr ie = ((InvokeStmt) u).getInvokeExpr();
-							if (ie.getMethod().toString().equals("<benchmark.internal.BenchmarkN: void alloc(int)>")) {
-								allocId = ((IntConstant) ie.getArgs().get(0)).value;
-							}
-							if (ie.getMethod().toString()
-									.equals("<benchmark.internal.BenchmarkN: void test(int,java.lang.Object)>")) {
-								Value v = ie.getArgs().get(1);
-								int id = ((IntConstant) ie.getArgs().get(0)).value;
-								queries.put(id, new APointer(ssm + "||" + v.toString(), null));
-							}
-						}
-						// DefinitionStmt -> IdentityStmt, AssignStmt
-						if (u instanceof IdentityStmt) {
-							processIdentityStmt(sm, ssm, u);
-						}
-						if (u instanceof AssignStmt) {
-							AssignStmt du = (AssignStmt)u;
-							Value l = du.getLeftOp();
-							String sl = l.toString();
-							Value r = du.getRightOp();
-							String sr = r.toString();
-							//  if (sm.toString().contains(classname)) { // debug
-							//      System.out.println("Unit: " + u + ", Type: " + u.getClass()); // debug
-							//      System.out.println("LeftType: " + l.getClass() + // debug
-							//                         ", RightType: " + r.getClass()); // debug
-							//  } // debug
-							if (r instanceof NewExpr || r instanceof NewArrayExpr) {
-								processNewStmt(allocId, ssm, sl);
-							} else if (r instanceof NewMultiArrayExpr) {
-								processNewMultiStmt(allocId, ssm, sl, r);
-							} else if (l instanceof Local && r instanceof Local) {
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + sr, null),
-									new APointer(ssm + "||" + sl, null));
-							} else if (l instanceof Local && r instanceof InstanceFieldRef) {
-								InstanceFieldRef ir = (InstanceFieldRef)r;
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + ir.getBase().toString(), ir.getField().toString()),
-									new APointer(ssm + "||" + sl, null));
-							} else if (r instanceof Local && l instanceof InstanceFieldRef) {
-								InstanceFieldRef il = (InstanceFieldRef)l;
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + sr, null),
-									new APointer(ssm + "||" + il.getBase().toString(), il.getField().toString()));
-							} else if (l instanceof Local && r instanceof StaticFieldRef) {
-								StaticFieldRef ir = (StaticFieldRef)r;
-								anderson.addAssignConstraint(
-									new APointer(ir.getClass().toString()+"||"+ir.getField().toString(),null),
-									new APointer(ssm + "||" + sl, null));
-							} else if (r instanceof Local && l instanceof StaticFieldRef) {
-								StaticFieldRef il = (StaticFieldRef)l;
-								if(ssm.contains(classname)) 
-									System.out.println(BashColor.ANSI_WHITE+
-										il.getClass().toString()+"\n"+il.getField().toString()
-										+BashColor.ANSI_RESET);
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + sr, null),
-									new APointer(il.getClass().toString()+"||"+il.getField().toString(),null));
-							} else if (l instanceof Local && r instanceof ArrayRef) {
-								// TODO: Global/Local ArrayRef??
-								sr = ((ArrayRef)r).getBase().toString();
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + sr, "[]"),
-									new APointer(ssm + "||" + sl, null));
-							} else if (r instanceof Local && l instanceof ArrayRef) {
-								sl = ((ArrayRef)l).getBase().toString();
-								anderson.addAssignConstraint(
-									new APointer(ssm + "||" + sr, null),
-									new APointer(ssm + "||" + sl, "[]"));
-							}
-						}
-						if (u instanceof ReturnStmt) {
-							processReturnStmt(sm, ssm, u);
+						if (ie.getMethod().toString()
+								.equals("<benchmark.internal.BenchmarkN: void test(int,java.lang.Object)>")) {
+							Value v = ie.getArgs().get(1);
+							int id = ((IntConstant) ie.getArgs().get(0)).value;
+							queries.put(id, new APointer(ssm + "||" + v.toString(), null));
 						}
 					}
+					// DefinitionStmt -> IdentityStmt, AssignStmt
+					if (u instanceof IdentityStmt) {
+						processIdentityStmt(sm, ssm, u);
+					}
+					if (u instanceof AssignStmt) {
+						AssignStmt du = (AssignStmt) u;
+						Value l = du.getLeftOp();
+						String sl = l.toString();
+						Value r = du.getRightOp();
+						String sr = r.toString();
+						// if (sm.toString().contains(classname)) { // debug
+						// System.out.println("Unit: " + u + ", Type: " + u.getClass()); // debug
+						// System.out.println("LeftType: " + l.getClass() + // debug
+						// ", RightType: " + r.getClass()); // debug
+						// } // debug
+						if (r instanceof NewExpr || r instanceof NewArrayExpr) {
+							processNewStmt(allocId, ssm, sl);
+						} else if (r instanceof NewMultiArrayExpr) {
+							processNewMultiStmt(allocId, ssm, sl, r);
+						} else if (l instanceof Local && r instanceof Local) {
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + sr, null),
+									new APointer(ssm + "||" + sl, null));
+						} else if (l instanceof Local && r instanceof InstanceFieldRef) {
+							InstanceFieldRef ir = (InstanceFieldRef) r;
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + ir.getBase().toString(), ir.getField().toString()),
+									new APointer(ssm + "||" + sl, null));
+						} else if (r instanceof Local && l instanceof InstanceFieldRef) {
+							InstanceFieldRef il = (InstanceFieldRef) l;
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + sr, null),
+									new APointer(ssm + "||" + il.getBase().toString(), il.getField().toString()));
+						} else if (l instanceof Local && r instanceof StaticFieldRef) {
+							StaticFieldRef ir = (StaticFieldRef) r;
+							anderson.addAssignConstraint(
+									new APointer(ir.getClass().toString() + "||" + ir.getField().toString(), null),
+									new APointer(ssm + "||" + sl, null));
+						} else if (r instanceof Local && l instanceof StaticFieldRef) {
+							StaticFieldRef il = (StaticFieldRef) l;
+							if (ssm.contains(classname))
+								System.out.println(BashColor.ANSI_WHITE +
+										il.getClass().toString() + "\n" + il.getField().toString()
+										+ BashColor.ANSI_RESET);
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + sr, null),
+									new APointer(il.getClass().toString() + "||" + il.getField().toString(), null));
+						} else if (l instanceof Local && r instanceof ArrayRef) {
+							// TODO: Global/Local ArrayRef??
+							sr = ((ArrayRef) r).getBase().toString();
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + sr, "[]"),
+									new APointer(ssm + "||" + sl, null));
+						} else if (r instanceof Local && l instanceof ArrayRef) {
+							sl = ((ArrayRef) l).getBase().toString();
+							anderson.addAssignConstraint(
+									new APointer(ssm + "||" + sr, null),
+									new APointer(ssm + "||" + sl, "[]"));
+						}
+					}
+					if (u instanceof ReturnStmt) {
+						processReturnStmt(sm, ssm, u);
+					}
 				}
+			}
 			// } // debug
 		}
 
@@ -260,12 +267,18 @@ public class WholeProgramTransformer extends SceneTransformer {
 		for (Entry<Integer, APointer> q : queries.entrySet()) {
 			HashSet<APointer> result = anderson.getPointsToSet(q.getValue());
 			answer += q.getKey().toString() + ":";
+			boolean flag = false;
 			if (result != null) {
 				for (APointer i : result) {
-					if (i.id != 0)
+					if (i.id != 0) {
 						answer += " " + i.id;
+						flag = true;
+					}
 				}
 			}
+			if (!flag)
+				for (Integer i : allId)
+					answer += " " + i;
 			answer += "\n";
 		}
 		AnswerPrinter.printAnswer(answer);

@@ -40,8 +40,8 @@ public class Anderson {
 
 	public boolean updateAssign(APointer from, APointer to) {
 		// System.out.println("from: " + from + ", to:" + to +
-		//                    ", fromSetDe: " + pts.get(from.deField()) +
-		// 				   ", toSetDe:" + pts.get(to.deField())); // debug
+		// ", fromSetDe: " + pts.get(from.deField()) +
+		// ", toSetDe:" + pts.get(to.deField())); // debug
 		if (!inPts(from.deField())) {
 			pts.put(from.deField(), new HashSet<APointer>());
 			return false;
@@ -55,7 +55,8 @@ public class Anderson {
 			boolean flag = false;
 			for (APointer l : pts.get(to.deField())) {
 				APointer p = new APointer(l.id, to.field, l.indexlv);
-				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " + pts.get(from) + ", pSet:" + pts.get(p)); // debug
+				// System.out.println("from: " + from + ", p: " + p + ", fromSet: " +
+				// pts.get(from) + ", pSet:" + pts.get(p)); // debug
 				if (!inPts(p))
 					pts.put(p, new HashSet<APointer>());
 				flag |= mergePts(from, p);
@@ -65,7 +66,8 @@ public class Anderson {
 			boolean flag = false;
 			for (APointer r : pts.get(from.deField())) {
 				APointer q = new APointer((int) r.id, from.field, r.indexlv);
-				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ", toSet:" + pts.get(to)); // debug
+				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ",
+				// toSet:" + pts.get(to)); // debug
 				if (!inPts(q))
 					pts.put(q, new HashSet<APointer>());
 				flag |= mergePts(q, to);
@@ -73,8 +75,8 @@ public class Anderson {
 			return flag;
 		}
 		System.out.println(BashColor.ANSI_RED +
-		                   "Anderson::updateAssign  Invalid Constraint, From = " + from +
-						   ", To = " + to + BashColor.ANSI_RESET);
+				"Anderson::updateAssign  Invalid Constraint, From = " + from +
+				", To = " + to + BashColor.ANSI_RESET);
 		return false;
 	}
 
