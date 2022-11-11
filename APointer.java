@@ -14,7 +14,7 @@ public class APointer {
 		field = field_;
 		id = 0;
 		indexlv = 0;
-		context = context_;
+		context = "qwq";
 	}
 
 	public APointer(String name_, String field_, int indexlv_, String context_) {
@@ -22,7 +22,7 @@ public class APointer {
 		field = field_;
 		id = 0;
 		indexlv = indexlv_;
-		context = context_;
+		context = "qwq";
 	}
 
 	public APointer(int id_, String field_, String context_) {
@@ -30,7 +30,7 @@ public class APointer {
 		field = field_;
 		id = id_;
 		indexlv = 0;
-		context = context_;
+		context = "qwq";
 	}
 
 	public APointer(int id_, String field_, int indexlv_, String context_) {
@@ -38,7 +38,7 @@ public class APointer {
 		field = field_;
 		id = id_;
 		indexlv = indexlv_;
-		context = context_;
+		context = "qwq";
 	}
 
 	@Override
