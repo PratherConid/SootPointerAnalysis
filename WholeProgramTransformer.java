@@ -85,23 +85,23 @@ public class WholeProgramTransformer extends SceneTransformer {
 			if (indexOfParameter == -1 && src.getInvokeExpr() instanceof InstanceInvokeExpr) {
 				Value r = ((InstanceInvokeExpr) (src.getInvokeExpr())).getBase();
 				String sr = r.toString();
-				if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
-						|| ssm.contains("benchmark.objects.B")) {
-					System.out.println(BashColor.ANSI_BLUE +
-							"1var: " + ssm + "||" + sl + BashColor.ANSI_RESET);
-					System.out.println(BashColor.ANSI_YELLOW +
-							"1context: " + scallsm + "||" + sSrc + BashColor.ANSI_RESET);
-				}
-				System.out
-						.println(BashColor.ANSI_PURPLE + "ssm: " + ssm + " Callsm: " + scallsm + BashColor.ANSI_RESET);
+				// if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
+				// 		|| ssm.contains("benchmark.objects.B")) {
+				// 	System.out.println(BashColor.ANSI_BLUE +
+				// 			"1var: " + ssm + "||" + sl + BashColor.ANSI_RESET);
+				// 	System.out.println(BashColor.ANSI_YELLOW +
+				// 			"1context: " + scallsm + "||" + sSrc + BashColor.ANSI_RESET);
+				// }
+				// System.out
+				// 		.println(BashColor.ANSI_PURPLE + "ssm: " + ssm + " Callsm: " + scallsm + BashColor.ANSI_RESET);
 				for (String con : anderson.getCons(scallsm)) {
-					if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
-							|| ssm.contains("benchmark.objects.B")) {
-						System.out.println(BashColor.ANSI_BLUE +
-								"2var: " + scallsm + "||" + sr + BashColor.ANSI_RESET);
-						System.out.println(BashColor.ANSI_YELLOW +
-								"2context: " + con + BashColor.ANSI_RESET);
-					}
+					// if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
+					// 		|| ssm.contains("benchmark.objects.B")) {
+					// 	System.out.println(BashColor.ANSI_BLUE +
+					// 			"2var: " + scallsm + "||" + sr + BashColor.ANSI_RESET);
+					// 	System.out.println(BashColor.ANSI_YELLOW +
+					// 			"2context: " + con + BashColor.ANSI_RESET);
+					// }
 					anderson.addAssignConstraint(new APointer(scallsm + "||" + sr, null, con),
 							new APointer(ssm + "||" + sl, null, scallsm + "||" + sSrc));
 				}
@@ -113,21 +113,21 @@ public class WholeProgramTransformer extends SceneTransformer {
 			} else if (indexOfParameter != -1) {
 				Value r = src.getInvokeExpr().getArg(indexOfParameter);
 				String sr = r.toString();
-				if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
-						|| ssm.contains("benchmark.objects.B")) {
-					System.out.println(BashColor.ANSI_BLUE +
-							"3var: " + ssm + "||" + sl + BashColor.ANSI_RESET);
-					System.out.println(BashColor.ANSI_YELLOW +
-							"3context: " + scallsm + "||" + sSrc + BashColor.ANSI_RESET);
-				}
+				// if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
+				// 		|| ssm.contains("benchmark.objects.B")) {
+				// 	System.out.println(BashColor.ANSI_BLUE +
+				// 			"3var: " + ssm + "||" + sl + BashColor.ANSI_RESET);
+				// 	System.out.println(BashColor.ANSI_YELLOW +
+				// 			"3context: " + scallsm + "||" + sSrc + BashColor.ANSI_RESET);
+				// }
 				for (String con : anderson.getCons(scallsm)) {
-					if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
-							|| ssm.contains("benchmark.objects.B")) {
-						System.out.println(BashColor.ANSI_BLUE +
-								"4var: " + scallsm + "||" + sr + BashColor.ANSI_RESET);
-						System.out.println(BashColor.ANSI_YELLOW +
-								"4context: " + con + BashColor.ANSI_RESET);
-					}
+				// 	if (ssm.contains(classname) || ssm.contains("benchmark.objects.A")
+				// 			|| ssm.contains("benchmark.objects.B")) {
+				// 		System.out.println(BashColor.ANSI_BLUE +
+				// 				"4var: " + scallsm + "||" + sr + BashColor.ANSI_RESET);
+				// 		System.out.println(BashColor.ANSI_YELLOW +
+				// 				"4context: " + con + BashColor.ANSI_RESET);
+				// 	}
 					anderson.addAssignConstraint(new APointer(scallsm + "||" + sr, null, con),
 							new APointer(ssm + "||" + sl, null, scallsm + "||" + sSrc));
 				}
@@ -187,7 +187,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 		if (allocId != 0)
 			System.out.println("Alloc: " + allocId + ", Lhs: " + sl);
 		anderson.addNewConstraint(
-				new APointer(allocId, null, context),
+				new APointer(allocId, null, "heap"),
 				new APointer(ssm + "||" + sl, null, context));
 		NewMultiArrayExpr nmr = (NewMultiArrayExpr) r;
 		int dim = nmr.getSizeCount();
@@ -232,7 +232,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
 
-			if (ssm.contains("void main("))
+			if (ssm.contains("void main(")&&ssm.contains(classname))
 				smain = sm;
 
 			if (sm.hasActiveBody()) {
@@ -242,10 +242,10 @@ public class WholeProgramTransformer extends SceneTransformer {
 					String scallsm = callsm.toString();
 					if (!edges.containsKey(callsm))
 						edges.put(callsm, new ArrayList<SootMethod>());
-					if (scallsm.contains("void main(")) {
-						System.out.println(BashColor.ANSI_RED + scallsm + BashColor.ANSI_RESET);
-						System.out.println(BashColor.ANSI_YELLOW + ssm + BashColor.ANSI_RESET);
-					}
+					// if (scallsm.contains("void main(")) {
+					// 	System.out.println(BashColor.ANSI_RED + scallsm + BashColor.ANSI_RESET);
+					// 	System.out.println(BashColor.ANSI_YELLOW + ssm + BashColor.ANSI_RESET);
+					// }
 					edges.get(callsm).add(sm);
 				}
 			}
@@ -256,6 +256,11 @@ public class WholeProgramTransformer extends SceneTransformer {
 			System.out.println(BashColor.ANSI_WHITE + s + BashColor.ANSI_RESET);
 		}
 
+		if(visited.size()>5000) {
+			APointer.useContext=false;
+			Anderson.useContext=false;
+		}
+
 		Map<SootMethod, ArrayList<SootMethod>> tmpedges = new HashMap<SootMethod, ArrayList<SootMethod>>();
 		for (Entry<SootMethod, ArrayList<SootMethod>> ent : edges.entrySet()) {
 			SootMethod caller = ent.getKey();
@@ -264,6 +269,8 @@ public class WholeProgramTransformer extends SceneTransformer {
 			for (SootMethod callee : ent.getValue()) {
 				if (!visited.contains(callee))
 					continue;
+				System.out.println(BashColor.ANSI_RED +"Caller: "+ caller + BashColor.ANSI_RESET);
+				System.out.println(BashColor.ANSI_YELLOW +"Callee: "+callee + BashColor.ANSI_RESET);
 				if (!tmpedges.containsKey(caller))
 					tmpedges.put(caller, new ArrayList<SootMethod>());
 				tmpedges.get(caller).add(callee);
@@ -281,9 +288,10 @@ public class WholeProgramTransformer extends SceneTransformer {
 			String ssm = sm.toString();
 			if (!visited.contains(sm))
 				continue;
-			if (sm.hasActiveBody()) {
-				HashSet<String> hs = new HashSet<String>();
-				anderson.cons.put(ssm, hs);
+			// if (sm.hasActiveBody()) {
+				System.out.println(BashColor.ANSI_WHITE+"sMethod: "+ssm+BashColor.ANSI_RESET);
+				// HashSet<String> hs = new HashSet<String>();
+				// anderson.cons.put(ssm, hs);
 				Iterator sources = new Units(cg.edgesInto(sm));
 				Iterator methods = new Sources(cg.edgesInto(sm));
 				while (sources.hasNext()) {
@@ -295,12 +303,16 @@ public class WholeProgramTransformer extends SceneTransformer {
 						continue;
 					if (!src.containsInvokeExpr())
 						continue;
-					hs.add(callsm.toString() + "||" + src.toString());
+					anderson.addCons(ssm,callsm.toString() + "||" + src.toString());
+					// hs.add(callsm.toString() + "||" + src.toString());
+					System.out.println(BashColor.ANSI_BLUE+"sContext: "+callsm.toString() + "||" + src.toString()+BashColor.ANSI_RESET);
 				}
 				// hs.add("qwq");
-				if (hs.isEmpty())
-					hs.add("root");
-			}
+				// if (hs.isEmpty())
+				// 	hs.add("root");
+				if(anderson.isEmptyCons(ssm))
+					anderson.addCons(ssm, "root");
+			// }
 		}
 		// Do the real calculation
 		qr = reachableMethods.listener();
@@ -413,6 +425,9 @@ public class WholeProgramTransformer extends SceneTransformer {
 			// } // debug
 		}
 
+		System.out.println(BashColor.ANSI_YELLOW +
+				"Number of reachable methods " + visited.size() +
+				BashColor.ANSI_RESET);
 		anderson.run();
 		String answer = "";
 		for (Entry<Integer, APointer> q : queries.entrySet()) {

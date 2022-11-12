@@ -57,6 +57,7 @@ class NewConstraint {
 }
 
 public class Anderson {
+	public static boolean useContext = true;
 	private ArrayList<AssignConstraint> assignConstraintList = new ArrayList<AssignConstraint>();
 	private ArrayList<NewConstraint> newConstraintList = new ArrayList<NewConstraint>();
 	Map<APointer, HashSet<APointer>> pts = new HashMap<APointer, HashSet<APointer>>();
@@ -96,7 +97,8 @@ public class Anderson {
 			return flag;
 		} else if (from.field != null) {
 			boolean flag = false;
-			for (APointer r : pts.get(from.deField())) {
+			HashSet<APointer> tmpHS = (HashSet<APointer>) pts.get(from.deField()).clone();
+			for (APointer r : tmpHS) {
 				APointer q = new APointer((int) r.id, from.field, r.indexlv, "heap");
 				// System.out.println("q: " + q + ", to: " + to + ", qSet: " + pts.get(q) + ",
 				// toSet:" + pts.get(to)); // debug
@@ -159,6 +161,21 @@ public class Anderson {
 
 	HashSet<APointer> getPointsToSet(APointer str) {
 		return pts.get(str);
+	}
+
+	boolean isEmptyCons(String s) {
+		if (!cons.containsKey(s))
+			return true;
+		return cons.get(s).isEmpty();
+	}
+
+	void addCons(String s, String c) {
+		if (!useContext)
+			c = "qwq";
+		if (!cons.containsKey(s)) {
+			cons.put(s, new HashSet<String>());
+		}
+		cons.get(s).add(c);
 	}
 
 	HashSet<String> getCons(String s) {
