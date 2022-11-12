@@ -164,6 +164,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 
 		ReachableMethods reachableMethods = Scene.v().getReachableMethods();
 		QueueReader<MethodOrMethodContext> qr = reachableMethods.listener();
+		int smCount=0;
 		while (qr.hasNext()) {
 			SootMethod sm = qr.next().method();
 			String ssm = sm.toString();
@@ -172,6 +173,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 			int allocId = 0;
 			// List<Value> inspect = new ArrayList<Value>(); // debug
 			if (sm.hasActiveBody()) {
+				smCount++;
 				if (ssm.contains(classname))
 					System.out.println(
 							"Method: " + BashColor.ANSI_PURPLE + ssm + BashColor.ANSI_RESET);
@@ -261,7 +263,7 @@ public class WholeProgramTransformer extends SceneTransformer {
 			}
 			// } // debug
 		}
-
+		System.out.println("smCount: "+smCount);
 		anderson.run();
 		String answer = "";
 		for (Entry<Integer, APointer> q : queries.entrySet()) {

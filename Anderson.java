@@ -89,6 +89,13 @@ public class Anderson {
 	}
 
 	void run() {
+		System.out.println(BashColor.ANSI_YELLOW +
+				"Number of new constraints: " + newConstraintList.size() +
+				BashColor.ANSI_RESET);
+
+		System.out.println(BashColor.ANSI_YELLOW +
+				"Number of assign constraints: " + assignConstraintList.size() +
+				BashColor.ANSI_RESET);
 		for (NewConstraint nc : newConstraintList) {
 			if (!pts.containsKey(nc.to)) {
 				pts.put(nc.to, new HashSet<APointer>());
